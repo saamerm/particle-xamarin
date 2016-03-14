@@ -14,6 +14,15 @@ namespace Particle
 {
 	public class ParticleCloud : IDisposable
 	{
+		#region Constants
+
+		readonly string CLIENT_URI_ENDPOINT = "https://api.particle.io/v1/clients/";
+		readonly string TOKEN_URI_ENDPOINT = "https://api.particle.io/oauth/token/";
+		readonly string USER_URI_ENDPOINT = "https://api.particle.io/v1/users/";
+		readonly string DEVICE_URI_ENDPOINT = "https://api.spark.io/v1/devices/";
+
+		#endregion
+
 		#region Constructors
 
 		public ParticleCloud()
@@ -30,7 +39,7 @@ namespace Particle
 		{
 			if (SharedInstance != null)
 				throw new Exception("You can only create one instance of the ParticleCloud");
-			
+
 			AccessToken = new ParticleAccessToken(accessToken, refreshToken, expiration);
 			instance = this;
 			OAuthClientId = "particle";
@@ -93,7 +102,7 @@ namespace Particle
 			{
 				using (var client = new HttpClient(new NativeMessageHandler()))
 				{
-					var response = await client.PostAsync("https://api.particle.io/v1/clients", requestContent);
+					var response = await client.PostAsync(CLIENT_URI_ENDPOINT, requestContent);
 					var particleResponse = DeserializeObject<ParticleOAuthResponse>(await response.Content.ReadAsStringAsync());
 
 					if (particleResponse.Success)
@@ -130,7 +139,7 @@ namespace Particle
 			{
 				using (var client = new HttpClient(new NativeMessageHandler()))
 				{
-					var response = await client.PostAsync("https://api.particle.io/oauth/token", requestContent);
+					var response = await client.PostAsync(TOKEN_URI_ENDPOINT, requestContent);
 					var particleResponse = DeserializeObject<ParticleLoginResponse>(await response.Content.ReadAsStringAsync());
 
 					if (particleResponse.AccessToken != null || !IsNullOrEmpty(particleResponse.AccessToken))
@@ -176,7 +185,7 @@ namespace Particle
 			{
 				using (var client = new HttpClient(new NativeMessageHandler()))
 				{
-					var response = await client.PostAsync("https://api.particle.io/v1/users", requestContent);
+					var response = await client.PostAsync(USER_URI_ENDPOINT, requestContent);
 					particleResponse = DeserializeObject<ParticleGeneralResponse>(await response.Content.ReadAsStringAsync());
 
 					if (particleResponse.Ok)
@@ -214,7 +223,7 @@ namespace Particle
 			{
 				using (var client = new HttpClient(new NativeMessageHandler()))
 				{
-					var response = await client.GetAsync("https://api.spark.io/v1/devices/?access_token=" + AccessToken.Token);
+					var response = await client.GetAsync(DEVICE_URI_ENDPOINT + "?access_token=" + AccessToken.Token);
 					var responseText = await response.Content.ReadAsStringAsync();
 
 					if (responseText.Contains("error"))
@@ -222,6 +231,7 @@ namespace Particle
 
 					var particleArgs = DeserializeObject<List<ParticleDeviceObject>>(responseText);
 					var particleDevices = new List<ParticleDevice>();
+
 					foreach (var device in particleArgs)
 						particleDevices.Add(new ParticleDevice(device));
 
@@ -248,13 +258,12 @@ namespace Particle
 				using (var client = new HttpClient(new NativeMessageHandler()))
 				{
 					var response = await client.GetAsync(
-						"https://api.spark.io/v1/devices/" + deviceId + "/?access_token=" + AccessToken.Token);
+						DEVICE_URI_ENDPOINT + deviceId + "/?access_token=" + AccessToken.Token);
 					var particleArgs = DeserializeObject<ParticleDeviceObject>(await response.Content.ReadAsStringAsync());
 
 					if (particleArgs != null)
 						return new ParticleDevice(particleArgs);
 				}
-
 			}
 			catch (Exception e)
 			{
@@ -287,7 +296,7 @@ namespace Particle
 				using (var client = new HttpClient(new NativeMessageHandler()))
 				{
 					var response = await client.PostAsync(
-						"https://api.particle.io/oauth/token/?refresh_token=" + AccessToken.RefreshToken,
+						TOKEN_URI_ENDPOINT + "?refresh_token=" + AccessToken.RefreshToken,
 						requestContent
 					);
 
@@ -300,7 +309,6 @@ namespace Particle
 						return AccessToken;
 					}
 				}
-
 			}
 			catch (Exception e)
 			{

@@ -22,7 +22,12 @@ namespace Particle
 
 	public class ParticleDevice
 	{
+		#region Constants
+
 		readonly int MAX_SPARK_FUNCTION_ARG_LENGTH = 63;
+		readonly string DEVICE_URI_ENDPOINT = "https://api.spark.io/v1/devices/";
+
+		#endregion
 
 		#region Constructors 
 
@@ -58,7 +63,7 @@ namespace Particle
 		public string Name { get; internal set; }
 		public bool Connected { get; internal set; }
 		public List<string> Functions { get; internal set; }
-		public Dictionary<string, string> Variables { get; internal set; } 
+		public Dictionary<string, string> Variables { get; internal set; }
 		public string LastApp { get; internal set; }
 		public DateTime LastHeard { get; internal set; }
 		public bool IsFlashing { get; internal set; }
@@ -83,7 +88,7 @@ namespace Particle
 				using (var client = new HttpClient(new NativeMessageHandler()))
 				{
 					var response = await client.GetAsync(
-						"https://api.spark.io/v1/devices/" + Id + "/" + variableName + "?access_token=" + ParticleCloud.AccessToken.Token);
+						DEVICE_URI_ENDPOINT + Id + "/" + variableName + "?access_token=" + ParticleCloud.AccessToken.Token);
 					var particleArgs = DeserializeObject<ParticleVariableResponse>(await response.Content.ReadAsStringAsync());
 
 					LastApp = particleArgs?.Core?.LastApp;
@@ -116,7 +121,7 @@ namespace Particle
 				using (var client = new HttpClient(new NativeMessageHandler()))
 				{
 					var response = await client.PostAsync(
-						"https://api.spark.io/v1/devices/" + Id + "/" + functionName + "?access_token=" + ParticleCloud.AccessToken.Token,
+						DEVICE_URI_ENDPOINT + Id + "/" + functionName + "?access_token=" + ParticleCloud.AccessToken.Token,
 						requestContent);
 					var responseText = await response.Content.ReadAsStringAsync();
 					var particleResponse = DeserializeObject<ParticleFunctionResponse>(responseText);
@@ -173,7 +178,7 @@ namespace Particle
 				using (var client = new HttpClient(new NativeMessageHandler()))
 				{
 					var response = await client.PutAsync(
-						"https://api.spark.io/v1/devices/" + Id + "?access_token=" + ParticleCloud.AccessToken.Token,
+						DEVICE_URI_ENDPOINT + Id + "?access_token=" + ParticleCloud.AccessToken.Token,
 						requestContent);
 					var particleArgs = DeserializeObject<Dictionary<string, string>>(await response.Content.ReadAsStringAsync());
 
@@ -207,7 +212,7 @@ namespace Particle
 				using (var client = new HttpClient(new NativeMessageHandler()))
 				{
 					var response = await client.PutAsync(
-						"https://api.spark.io/v1/devices/" + Id + "?access_token=" + ParticleCloud.AccessToken.Token,
+						DEVICE_URI_ENDPOINT + Id + "?access_token=" + ParticleCloud.AccessToken.Token,
 						requestContent);
 					var particleArgs = DeserializeObject<ParticleFlashResponse>(await response.Content.ReadAsStringAsync());
 
@@ -234,7 +239,7 @@ namespace Particle
 				using (var client = new HttpClient(new NativeMessageHandler()))
 				{
 					var response = await client.DeleteAsync(
-						"https://api.spark.io/v1/devices/" + Id + "?access_token=" + ParticleCloud.AccessToken.Token
+						DEVICE_URI_ENDPOINT + Id + "?access_token=" + ParticleCloud.AccessToken.Token
 					);
 					var particleArgs = DeserializeObject<ParticleGeneralResponse>(await response.Content.ReadAsStringAsync());
 
@@ -268,7 +273,7 @@ namespace Particle
 				using (var client = new HttpClient(new NativeMessageHandler()))
 				{
 					var response = await client.PutAsync(
-						"https://api.spark.io/v1/devices/" + Id + "?access_token=" + ParticleCloud.AccessToken.Token,
+						DEVICE_URI_ENDPOINT + Id + "?access_token=" + ParticleCloud.AccessToken.Token,
 						content);
 					response.EnsureSuccessStatusCode();
 
