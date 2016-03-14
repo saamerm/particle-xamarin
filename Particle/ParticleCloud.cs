@@ -9,6 +9,7 @@ using ModernHttpClient;
 using static Newtonsoft.Json.JsonConvert;
 
 using Particle.Models;
+using Particle.Helpers;
 
 namespace Particle
 {
@@ -27,47 +28,29 @@ namespace Particle
 
 		public ParticleCloud()
 		{
-			if (SharedInstance != null)
-				throw new Exception("You can only create one instance of the ParticleCloud");
-
 			OAuthClientId = "particle";
 			OAuthClientSecret = "particle";
-			instance = this;
 		}
 
 		public ParticleCloud(string accessToken, string refreshToken, DateTime expiration)
 		{
-			if (SharedInstance != null)
-				throw new Exception("You can only create one instance of the ParticleCloud");
-
 			AccessToken = new ParticleAccessToken(accessToken, refreshToken, expiration);
-			instance = this;
 			OAuthClientId = "particle";
 			OAuthClientSecret = "particle";
 		}
 
 		#endregion
 
-		#region Public Properties
-
-		private static ParticleCloud instance;
-		public static ParticleCloud SharedInstance
-		{
-			get
-			{
-				if (instance == null)
-				{
-					instance = new ParticleCloud();
-				}
-				return instance;
-			}
-		}
+		#region Properties
+		//public
+		public static ParticleCloud SharedInstance { get; internal set; } = new ParticleCloud();
 		public string LoggedInUsername { get; internal set; }
 		public bool IsLoggedIn { get; internal set; }
 		public static ParticleAccessToken AccessToken { get; set; }
 		public string OAuthClientId { get; internal set; }
 		public string OAuthClientSecret { get; internal set; }
-
+		//private
+		Dictionary<string, EventSource> eventListenerDictionary { get; set; } = new Dictionary<string, EventSource>();
 		#endregion
 
 		#region IDisposable Implementation
@@ -78,12 +61,13 @@ namespace Particle
 			AccessToken = null;
 			OAuthClientId = null;
 			OAuthClientSecret = null;
-			instance = null;
+			SharedInstance = null;
 		}
 
 		#endregion
 
 		#region Public Methods
+
 		/// <summary>
 		/// Creates the OAuth client and sets the OAuth Client Id and Secret if successful.
 		/// </summary>
@@ -331,7 +315,7 @@ namespace Particle
 				using (var client = new HttpClient(new NativeMessageHandler()))
 				{
 					var response = await client.PostAsync(
-						"https://api.spark.io/v1/devices?access_token=" + AccessToken.Token,
+						DEVICE_URI_ENDPOINT + "?access_token=" + AccessToken.Token,
 						requestContent);
 
 					var particleResponse = DeserializeObject<ParticleFunctionResponse>(await response.Content.ReadAsStringAsync());
@@ -348,6 +332,65 @@ namespace Particle
 			return false;
 		}
 
+		public async Task UnsubscribeFromEventWithID(int eventId)
+		{
+		}
+
+		public async Task SubscribeToAllEventsWithPrefix(string eventNamePrefix, ParticleEventHandler handler)//add event handler
+		{
+
+		}
+
+		public async Task SubscribeToMyDevicesEventsWithPrefix(string eventNamePrefix, string deviceID, ParticleEventHandler handler)//add event handler
+		{
+
+		}
+
+		public async Task<string> PublishEventWithName(string eventName, string data, bool isPrivate, int timeToLive)
+		{
+			string privateString = "";
+
+			if (isPrivate)
+				privateString = "true";
+			else
+				privateString = "false";
+
+			var requestContent = new KeyValuePair<string, string>[] {
+				new KeyValuePair<string, string> ("name", eventName),
+				new KeyValuePair<string, string> ("data", data),
+				new KeyValuePair<string, string> ("ttl", timeToLive.ToString()),
+				new KeyValuePair<string, string> ("isPrivate", privateString),
+
+			};
+			try
+			{
+				using (var client = new HttpClient(new NativeMessageHandler()))
+				{
+					var response = await client.PostAsync(
+						"https://api.particle.io/v1/devices/events" + "?access_token=" + AccessToken.Token,
+						new FormUrlEncodedContent(requestContent)
+					);
+					var particleResponse = await response.Content.ReadAsStringAsync();
+
+					if (particleResponse.Contains("\"ok\": true"))
+						return "Ok";
+
+					return "Error";
+				}
+			}
+			catch (Exception e)
+			{
+				WriteLine(e.Message);
+			}
+
+			return "Error";
+		}
+
 		#endregion
+
+		async Task subscribeToEventWithURL(string url)//add event handler
+		{
+
+		}
 	}
 }

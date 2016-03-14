@@ -12,9 +12,9 @@ namespace MyDevices.ViewModels
 {
 	public class MyDevicesViewModel : BaseViewModel
 	{
-		public MyDevicesViewModel ()
-		{ 
-			LastRefresh = DateTime.Now.ToString ();
+		public MyDevicesViewModel()
+		{
+			LastRefresh = DateTime.Now.ToString();
 		}
 
 		Command refreshCommand;
@@ -33,99 +33,119 @@ namespace MyDevices.ViewModels
 
 		async void HandleRefresh(object parameter)
 		{
-			await GetDevicesAsync ();
+			await GetDevicesAsync();
 			Refreshing = false;
-			LastRefresh = DateTime.Now.ToString ();
+			LastRefresh = DateTime.Now.ToString();
 		}
 
 		public string lastRefresh;
-		public string LastRefresh {
+		public string LastRefresh
+		{
 			get { return lastRefresh; }
-			set {
-				lastRefresh = "Last Updated: " + DateTime.Now.ToString ();
-				OnPropertyChanged ("LastRefresh");
+			set
+			{
+				lastRefresh = "Last Updated: " + DateTime.Now.ToString();
+				OnPropertyChanged("LastRefresh");
 			}
 		}
 
 		public bool isRefreshing = false;
-		public bool Refreshing { 
+		public bool Refreshing
+		{
 			get { return isRefreshing; }
-			internal set {
+			internal set
+			{
 				isRefreshing = value;
-				OnPropertyChanged ("Refreshing");
+				OnPropertyChanged("Refreshing");
 			}
 		}
 
 		ObservableCollection<ParticleDevice> devices;
-		public ObservableCollection<ParticleDevice> Devices {
+		public ObservableCollection<ParticleDevice> Devices
+		{
 			get { return devices; }
-			internal set {
+			internal set
+			{
 				if (value == devices)
 					return;
 				devices = value;
-				OnPropertyChanged ("Devices");
+				OnPropertyChanged("Devices");
 			}
 		}
 
 		DateTime devicesLastRefreshed;
-		public DateTime DeviceListLastRefreshed {
+		public DateTime DeviceListLastRefreshed
+		{
 			get { return devicesLastRefreshed; }
-			internal set {
+			internal set
+			{
 				if (value == devicesLastRefreshed)
 					return;
 				devicesLastRefreshed = value;
-				OnPropertyChanged ("DeviceListLastRefreshed");
+				OnPropertyChanged("DeviceListLastRefreshed");
 			}
 		}
 
 		public async Task GetDevicesAsync()
 		{
 			Refreshing = true;
-			var devices = await ParticleCloud.SharedInstance.GetDevicesAsync ();
-			Devices = new ObservableCollection<ParticleDevice> (devices);
+			var devices = await ParticleCloud.SharedInstance.GetDevicesAsync();
+			Devices = new ObservableCollection<ParticleDevice>(devices);
 			DeviceListLastRefreshed = DateTime.Now;
 			Refreshing = false;
 		}
 
 		public async Task<bool> CheckLogin()
 		{
-			if (!App.IsInitialized) {
+			if (!App.IsInitialized)
+			{
 				string access = "";
 				string refresh = "";
 
 				DateTime expiration = DateTime.Now.Subtract(TimeSpan.FromDays(1000));
 
-				try {
-					access = await BlobCache.UserAccount.GetObject<string> ("Access Token");
-					refresh = await BlobCache.UserAccount.GetObject<string> ("Refresh Token");
-					expiration = await BlobCache.UserAccount.GetObject<DateTime> ("Expiration");
-				} catch (KeyNotFoundException k) {
+				try
+				{
+					access = await BlobCache.UserAccount.GetObject<string>("Access Token");
+					refresh = await BlobCache.UserAccount.GetObject<string>("Refresh Token");
+					expiration = await BlobCache.UserAccount.GetObject<DateTime>("Expiration");
+				}
+				catch (KeyNotFoundException k)
+				{
 					return false;
 				}
 
-				if (expiration > DateTime.Now.Subtract (TimeSpan.FromDays (7)) && expiration < DateTime.Now) {
-					ParticleAccessToken response = await ParticleCloud.SharedInstance.RefreshTokenAsync ("xamarin");
+				if (expiration > DateTime.Now.Subtract(TimeSpan.FromDays(7)) && expiration < DateTime.Now)
+				{
+					ParticleAccessToken response = await ParticleCloud.SharedInstance.RefreshTokenAsync("xamarin");
 
-					if (response.Token == "expired") {
+					if (response.Token == "expired")
+					{
 						App.HasValidToken = false;
 						App.IsInitialized = true;
 						return false;
-					} else {
+					}
+					else {
 						App.HasValidToken = true;
 						App.IsInitialized = true;
 					}
 
-				} else if (expiration < DateTime.Now) {
+				}
+				else if (expiration < DateTime.Now)
+				{
 					App.HasValidToken = false;
 					App.IsInitialized = true;
 					return false;
-				}else {
+				}
+				else {
 					App.HasValidToken = true;
 					Refreshing = true;
-					await GetDevicesAsync ();	
+					await GetDevicesAsync();
 					App.IsInitialized = true;
 				}
-			} else if (App.HasValidToken == false) {
+			}
+			else if (App.HasValidToken == false)
+			{
 				return false;
 			}
 
