@@ -23,7 +23,7 @@ namespace Particle
 
 			OAuthClientId = "particle";
 			OAuthClientSecret = "particle";
-			SharedInstance = this;
+			instance = this;
 		}
 
 		public ParticleCloud(string accessToken, string refreshToken, DateTime expiration)
@@ -32,7 +32,7 @@ namespace Particle
 				throw new Exception("You can only create one instance of the ParticleCloud");
 			
 			AccessToken = new ParticleAccessToken(accessToken, refreshToken, expiration);
-			SharedInstance = this;
+			instance = this;
 			OAuthClientId = "particle";
 			OAuthClientSecret = "particle";
 		}
@@ -41,7 +41,18 @@ namespace Particle
 
 		#region Public Properties
 
-		public static ParticleCloud SharedInstance;
+		private static ParticleCloud instance;
+		public static ParticleCloud SharedInstance
+		{
+			get
+			{
+				if (instance == null)
+				{
+					instance = new ParticleCloud();
+				}
+				return instance;
+			}
+		}
 		public string LoggedInUsername { get; internal set; }
 		public bool IsLoggedIn { get; internal set; }
 		public static ParticleAccessToken AccessToken { get; set; }
@@ -58,7 +69,7 @@ namespace Particle
 			AccessToken = null;
 			OAuthClientId = null;
 			OAuthClientSecret = null;
-			SharedInstance = null;
+			instance = null;
 		}
 
 		#endregion
