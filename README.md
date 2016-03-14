@@ -1,7 +1,11 @@
+<p align="center">
+<img src="https://xamarin.com/content/images/pages/branding/assets/xamarin-logo.png" alt="Xamarin" title="Xamarin" width="500">
+</p>
 <p align="center" >
 <img src="http://oi60.tinypic.com/116jd51.jpg" alt="Particle" title="Particle">
 </p>
-# Particle iOS Cloud SDK
+
+# Particle Xamarin Cloud SDK
 [![license](https://img.shields.io/hexpm/l/plug.svg)](https://github.com/spark/spark-sdk-ios/blob/master/LICENSE) 
 
 Particle Xamarin Cloud SDK enables Xamarin apps to interact with Particle-powered connected products via the Particle Cloud. It’s an easy-to-use wrapper for Particle REST API. The Cloud SDK will allow you to:
