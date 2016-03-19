@@ -10,6 +10,7 @@ using static Newtonsoft.Json.JsonConvert;
 
 using Particle.Models;
 using Particle.Helpers;
+using System.Threading;
 
 namespace Particle
 {
@@ -49,8 +50,7 @@ namespace Particle
 		public static ParticleAccessToken AccessToken { get; set; }
 		public string OAuthClientId { get; internal set; }
 		public string OAuthClientSecret { get; internal set; }
-		//private
-		Dictionary<string, EventSource> eventListenerDictionary { get; set; } = new Dictionary<string, EventSource>();
+		public Dictionary<Guid, EventSource> EventSourceDictionary { get; internal set; } = new Dictionary<Guid, EventSource>();
 		#endregion
 
 		#region IDisposable Implementation
@@ -334,17 +334,34 @@ namespace Particle
 
 		public async Task UnsubscribeFromEventWithID(int eventId)
 		{
+			//strip everything but the data
+			//EventSourceDictionary.Add(guid, source);
 		}
 
-		public async Task SubscribeToAllEventsWithPrefix(string eventNamePrefix, ParticleEventHandler handler)//add event handler
+		public async Task<Guid> SubscribeToAllEventsWithPrefix(string eventNamePrefix, ParticleEventHandler handler)
 		{
+			string endpoint;
+			if (String.IsNullOrEmpty(eventNamePrefix))
+				endpoint = "https://api.particle.io/v1/events/";
+			else
+				endpoint = "https://api.particle.io/v1/events/" + eventNamePrefix;
 
+			//var eventListenerId = Guid.NewGuid();
+			var eventListenerId = await subscribeToEventWithURL(endpoint, handler);
+
+			return eventListenerId;
 		}
 
-		public async Task SubscribeToMyDevicesEventsWithPrefix(string eventNamePrefix, string deviceID, ParticleEventHandler handler)//add event handler
-		{
-
-		}
+		//public async Task SubscribeToMyDevicesEventsWithPrefix(string eventNamePrefix, string deviceID, ParticleEventHandler handler)//add event handler
+		//{
+		//	string endpoint;
+		//	if (!String.IsNullOrEmpty(eventNamePrefix))
+		//		endpoint = "https://api.particle.io/v1/devices/events/";
+		//	else
+		//		endpoint = "https://api.particle.io/v1/devices/events/" + eventNamePrefix;
+		//
+		//	await subscribeToEventWithURL(endpoint, eventNamePrefix, handler);
+		//}
 
 		public async Task<string> PublishEventWithName(string eventName, string data, bool isPrivate, int timeToLive)
 		{
@@ -360,8 +377,8 @@ namespace Particle
 				new KeyValuePair<string, string> ("data", data),
 				new KeyValuePair<string, string> ("ttl", timeToLive.ToString()),
 				new KeyValuePair<string, string> ("isPrivate", privateString),
-
 			};
+
 			try
 			{
 				using (var client = new HttpClient(new NativeMessageHandler()))
@@ -388,9 +405,15 @@ namespace Particle
 
 		#endregion
 
-		async Task subscribeToEventWithURL(string url)//add event handler
+		async Task<Guid> subscribeToEventWithURL(string url, ParticleEventHandler handler)
 		{
+			var guid = Guid.NewGuid();
+			var source = new EventSource(url, AccessToken.Token);
+			source.AddEventListener(guid.ToString(), handler);
+			await source.StartHandlingEvents();
 
+			EventSourceDictionary.Add(guid, source);
+			return guid;
 		}
 	}
 }

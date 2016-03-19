@@ -3,6 +3,9 @@ namespace Particle.Helpers
 {
 	public class ParticleEventArgs : EventArgs
 	{
+		public ParticleEventArgs()
+		{
+		}
 		public ParticleEventArgs(string error)
 		{
 			Error = error;

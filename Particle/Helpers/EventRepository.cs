@@ -2,14 +2,20 @@
 using System.Collections.Generic;
 namespace Particle.Helpers
 {
-	public class Event : EventArgs
+	public class EventRepository : EventArgs
 	{
-		public Event(string error)
+		public EventRepository(string error)
 		{
 			Error = error;
 		}
 
-		public Event(string name, Dictionary<string, ParticleEvent> data, EventState state)
+		public EventRepository()
+		{
+			Data = new Dictionary<string, ParticleEvent>();
+			State = EventState.Closed;
+		}
+
+		public EventRepository(string name, Dictionary<string, ParticleEvent> data, EventState state)
 		{
 			Name = name;
 			Data = data;

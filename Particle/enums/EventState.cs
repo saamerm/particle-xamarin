@@ -1,4 +1,4 @@
-﻿namespace Particle.Helpers
+﻿namespace Particle
 {
 	public enum EventState
 	{

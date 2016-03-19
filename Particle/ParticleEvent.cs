@@ -5,11 +5,11 @@ namespace Particle
 {
 	public class ParticleEvent
 	{
-		public ParticleEvent(Dictionary<string, string> eventDictionary)
+		public ParticleEvent(Dictionary<string, string> eventDictionary, string eventName)
 		{
 			DeviceId = eventDictionary["coreid"];
 			Data = eventDictionary["data"];
-			Event = eventDictionary["event"];
+			Event = eventName;
 			TimeToLive = Convert.ToInt32(eventDictionary["ttl"]);
 			Time = DateTime.Parse(eventDictionary["published_at"]);
 		}

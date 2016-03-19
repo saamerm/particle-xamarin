@@ -43,10 +43,10 @@
     <Compile Include="ParticleDevice.cs" />
     <Compile Include="ParticleAccessToken.cs" />
     <Compile Include="Helpers\EventSource.cs" />
-    <Compile Include="Helpers\EventState.cs" />
-    <Compile Include="Helpers\Event.cs" />
+    <Compile Include="Helpers\EventRepository.cs" />
     <Compile Include="ParticleEvent.cs" />
     <Compile Include="Helpers\ParticleEventArgs.cs" />
+    <Compile Include="enums\EventState.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Newtonsoft.Json">
@@ -70,6 +70,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Helpers\" />
+    <Folder Include="enums\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
 </Project>
