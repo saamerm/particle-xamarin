@@ -193,9 +193,32 @@ namespace Particle
 		{
 			throw new NotImplementedException();
 		}
-		public Task RequestPasswordResetForUserAsync(string email)
+		/// <summary>
+		/// Requests the password reset for user.
+		/// </summary>
+		/// <returns>A boolean indicating success or failure on password reset request</returns>
+		/// <param name="email">Email of user to reset password</param>
+		public Task<bool> RequestPasswordResetForUserAsync(string email)
 		{
-			throw new NotImplementedException();
+			if (IsNullOrWhiteSpace(email))
+			{
+				throw new ArgumentNullException(nameof(email));
+			}
+
+			try
+			{
+				using (var client = new HttpClient(new NativeMessageHandler()))
+				{
+					HttpResponseMessage response = await client.PostAsync(method, new FormUrlEncodedContent(new KeyValuePair<string, string>("username", email)));
+					string str = await response.Content.ReadAsStringAsync();
+
+					if (str.Contains("\"ok\": true"))
+						return true;
+				}
+			}
+			catch (HttpRequestException e)
+			{
+			}
 		}
 		/// <summary>
 		/// Gets a list of the users registered Particle Devices..
