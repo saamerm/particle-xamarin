@@ -30,17 +30,17 @@ namespace MyDevices
 		{
 			BlobCache.ApplicationName = "ParticleXamarin";
 
-			//var page = new LoginPage { LogoFileImageSource = "particle.png" };
-			//NavigationPage.SetHasNavigationBar(page, false);
-			//var navPage = new NavigationPage(page)
-			//{
-			//	BarBackgroundColor = Color.FromHex("#3498db"),
-			//	BarTextColor = Color.White,
-			//};
-			//Navigation = navPage.Navigation;
-			//MainPage = navPage;
+			var page = new LoginPage { LogoFileImageSource = "particle.png" };
+			NavigationPage.SetHasNavigationBar(page, false);
+			var navPage = new NavigationPage(page)
+			{
+				BarBackgroundColor = Color.FromHex("#3498db"),
+				BarTextColor = Color.White,
+			};
+			Navigation = navPage.Navigation;
+			MainPage = navPage;
 
-			MainPage = new TestPage();
+			//MainPage = new TestPage();
 
 			IsInitialized = true;
 		}

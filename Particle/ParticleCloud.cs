@@ -185,11 +185,11 @@ namespace Particle
 		}
 
 		//TODO Still need to complete
-		public Task SignUpWithCusomterAsync(string email, string password, string orgSlig)
+		public async Task SignUpWithCusomterAsync(string email, string password, string orgSlig)
 		{
 			throw new NotImplementedException();
 		}
-		public Task RequestPasswordResetForCustomerAsync(string orgSlug, string email)
+		public async Task RequestPasswordResetForCustomerAsync(string orgSlug, string email)
 		{
 			throw new NotImplementedException();
 		}
@@ -198,28 +198,28 @@ namespace Particle
 		/// </summary>
 		/// <returns>A boolean indicating success or failure on password reset request</returns>
 		/// <param name="email">Email of user to reset password</param>
-		public Task<bool> RequestPasswordResetForUserAsync(string email)
-		{
-			if (IsNullOrWhiteSpace(email))
-			{
-				throw new ArgumentNullException(nameof(email));
-			}
+		//public async Task<bool> RequestPasswordResetForUserAsync(string email)
+		//{
+		//	if (IsNullOrWhiteSpace(email))
+		//	{
+		//		throw new ArgumentNullException(nameof(email));
+		//	}
 
-			try
-			{
-				using (var client = new HttpClient(new NativeMessageHandler()))
-				{
-					HttpResponseMessage response = await client.PostAsync(method, new FormUrlEncodedContent(new KeyValuePair<string, string>("username", email)));
-					string str = await response.Content.ReadAsStringAsync();
+		//	try
+		//	{
+		//		using (var client = new HttpClient(new NativeMessageHandler()))
+		//		{
+		//			HttpResponseMessage response = await client.PostAsync(method, new FormUrlEncodedContent(new KeyValuePair<string, string>("username", email)));
+		//			string str = await response.Content.ReadAsStringAsync();
 
-					if (str.Contains("\"ok\": true"))
-						return true;
-				}
-			}
-			catch (HttpRequestException e)
-			{
-			}
-		}
+		//			if (str.Contains("\"ok\": true"))
+		//				return true;
+		//		}
+		//	}
+		//	catch (HttpRequestException e)
+		//	{
+		//	}
+		//}
 		/// <summary>
 		/// Gets a list of the users registered Particle Devices..
 		/// </summary>
