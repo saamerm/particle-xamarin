@@ -21,7 +21,7 @@ All cloud operations take place asynchronously, allowing you to build beautiful 
 
 **Beta notice**
 
-This SDK is still under development and is currently released as Beta. Although tested, bugs and issues may be present. Some code might require cleanup. In addition, until version 1.0 is released, we cannot guarantee that API calls will not break from one Cloud SDK version to the next. Be sure to consult the [Change Log](https://github.com/spark/spark-sdk-ios/blob/master/CHANGELOG.md) for any breaking changes / additions to the SDK.
+This SDK is still under development and is currently released as Beta. Although tested, bugs and issues may be present. Some code might require cleanup. 
 
 ## Getting Started
 
@@ -40,11 +40,13 @@ Here are few examples for the most common use cases to get your started:
 #### Logging in to Particle cloud
 You don't need to worry about access tokens, SDK takes care of that for you
 
-```var loginSuccess = await ParticleCloud.SharedInstance.LoginWithUserAsync("username@email.com"","password");
+```C#
+var loginSuccess = await ParticleCloud.SharedInstance.LoginWithUserAsync("username@email.com"","password");
 if(loginSuccess)
     System.DIagnostics.Debug.WriteLine("Logged in to cloud")
 else
-    System.DIagnostics.Debug.WriteLine("Wrong credentials or no internet connectivity, please try again")```
+    System.DIagnostics.Debug.WriteLine("Wrong credentials or no internet connectivity, please try again")
+```
 
 #### Get a list of all devices
 List the devices that belong to currently logged in user and find a specific device by name:
