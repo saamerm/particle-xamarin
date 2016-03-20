@@ -88,7 +88,7 @@ ParticleCloud.SharedInstance.Logout();
 ```
 
 ### ParticleEvents
-Events were implemented at both the ParticleCloud instance and ParticleDevice instance. Each subscription will return a ```Guid``` that is used to unsubscribe from that event. All Subscribed Events are started on a new thread throught Task.Factory with completion options set to LongRunning. It is important to take this into consideration when subscribing to Events. Multiple subscriptions could slow down performance on any other web requests within application. 
+Events were implemented at both the ParticleCloud instance and ParticleDevice instance. Each subscription will return a ```Guid``` that is used to unsubscribe from that event. All Subscribed Events are started on a new thread throught ```Task.Factory``` with completion options set to ```LongRunning```. It is important to take this into consideration when subscribing to Events. Multiple subscriptions could slow down performance on any other web requests within application. 
 
 #### Subscribe to all events with prefix
 Subscribing is easy, just provide the event handler you want invoked as messages are received.  
