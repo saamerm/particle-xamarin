@@ -17,8 +17,7 @@ Particle Xamarin Cloud SDK enables Xamarin apps to interact with Particle-powere
 - Invoke functions on devices
 - Publish events from the mobile app and subscribe to events coming from devices *(New!)*
 
-All cloud operations take place asynchronously and use the well-known completion blocks (closures for swift) design pattern for reporting results allowing you to build beautiful responsive apps for your Particle products and projects.
-iOS Cloud SDK is implemented as an open-source Cocoapod static library and also as Carthage dynamic framework dependancy. See [Installation](#installation) section for more details. 
+All cloud operations take place asynchronously, allowing you to build beautiful responsive apps for your Particle products and projects.
 
 **Beta notice**
 
