@@ -25,6 +25,8 @@ This SDK is still under development and is currently released as Beta. Although 
 
 ## Getting Started
 
+- Available via [NuGet Package](https://www.nuget.org/packages/ParticleCloud/1.0.0).
+    - Supports Xamarin.iOS, Xamarin.Android, Xamarin.Forms and Windows
 - Fork this library to get access to the SDK and a full working sample
 
 ## Usage
