@@ -56,6 +56,7 @@
     <Compile Include="Pages\ReusableLoginPage.cs" />
     <Compile Include="Views\LoginEntry.cs" />
     <Compile Include="Views\LoginButton.cs" />
+    <Compile Include="Pages\TestPage.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Xamarin.Forms.Core">

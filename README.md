@@ -87,8 +87,50 @@ Also clears user session and access token
 ParticleCloud.SharedInstance.Logout();
 ```
 
-#### ParticleEvents
-Coming Soon!!
+### ParticleEvents
+Events were implemented at both the ParticleCloud instance and ParticleDevice instance. Each subscription will return a ```Guid``` that is used to unsubscribe from that event. All Subscribed Events are started on a new thread throught ```Task.Factory``` with completion options set to ```LongRunning```. It is important to take this into consideration when subscribing to Events. Multiple subscriptions could slow down performance on any other web requests within application. 
+
+#### Subscribe to all events with prefix
+Subscribing is easy, just provide the event handler you want invoked as messages are received.  
+
+```C#
+var uniqueId = await ParticleCloud.SharedInstance.SubscribeToAllEventsWithPrefixAsync(eventNamePrefix,  
+    (object sender, ParticleEventArgs e) => doSomethingWithEvent()
+);
+```
+#### Subscribe to all events with prefix for a specific device
+Only difference is we provide the Id of the device we want to subscribe to.   
+
+```C#
+var uniqueId = await ParticleCloud.SharedInstance.SubscribeToMyDevicesEventsWithPrefixAsync(eventNamePrefix, deviceId, 
+    (object sender, ParticleEventArgs e) => doSomethingWithEvent()
+);
+```
+#### Unsubscribe to a event
+Just provide the Guid and the event will be fully disposed. All cached data is returned as an ```Event``` object and then disposed of to keep the ParticleCloud instance light weight.  
+
+```C#
+await ParticleCloud.SharedInstance.UnsubscribeFromEventWithIdAsync(uniqueId);
+```
+#### Publish an event
+Publishing an event is easy, just provide the event details: eventName, eventData, boolean whether the event is public and time for it to live in the Cloud.   
+
+```C#
+await ParticleCloud.SharedInstance.PublishEventWithNameAsync(eventName, eventData, false, 60);
+```
+#### Wire up OnStart and OnError
+Sometimes we may want to know when the connection is starting or when an error is returned by the Cloud. We can do this on each subscribed event. Nothing is wired up by default to maximize performance.
+
+```C#
+var uniqueId = await ParticleCloud.SharedInstance.SubscribeToAllEventsWithPrefixAsync(eventNamePrefix,  
+    (object sender, ParticleEventArgs e) => doSomethingWithEvent()
+);
+var eventSource = ParticleCloud.SharedInstance.SubscibedEvents[UniqueId];
+eventSource.OnOpen += HandleOpen;
+eventSource.OnError += HandleClose;
+```
+
+
 
 ### OAuth client configuration
 

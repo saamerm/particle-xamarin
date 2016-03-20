@@ -30,15 +30,18 @@ namespace MyDevices
 		{
 			BlobCache.ApplicationName = "ParticleXamarin";
 
-			var page = new LoginPage { LogoFileImageSource = "particle.png" };
-			NavigationPage.SetHasNavigationBar(page, false);
-			var navPage = new NavigationPage(page)
-			{
-				BarBackgroundColor = Color.FromHex("#3498db"),
-				BarTextColor = Color.White,
-			};
-			Navigation = navPage.Navigation;
-			MainPage = navPage;
+			//var page = new LoginPage { LogoFileImageSource = "particle.png" };
+			//NavigationPage.SetHasNavigationBar(page, false);
+			//var navPage = new NavigationPage(page)
+			//{
+			//	BarBackgroundColor = Color.FromHex("#3498db"),
+			//	BarTextColor = Color.White,
+			//};
+			//Navigation = navPage.Navigation;
+			//MainPage = navPage;
+
+			MainPage = new TestPage();
+
 			IsInitialized = true;
 		}
 
@@ -46,12 +49,12 @@ namespace MyDevices
 		{
 			base.OnResume();
 
-			var result = await CheckIfTokenIsValidAsync();
+			//var result = await CheckIfTokenIsValidAsync();
 
-			if (result == TokenResult.Invalid || result == TokenResult.Error || result == TokenResult.Empty)
-			{
-				Navigation.PushModalAsync(new LoginPage());
-			}
+			//if (result == TokenResult.Invalid || result == TokenResult.Error || result == TokenResult.Empty)
+			//{
+			//	Navigation.PushModalAsync(new LoginPage());
+			//}
 		}
 
 		public static async Task<TokenResult> CheckIfTokenIsValidAsync()

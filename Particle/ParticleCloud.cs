@@ -9,6 +9,7 @@ using ModernHttpClient;
 using static Newtonsoft.Json.JsonConvert;
 
 using Particle.Models;
+using Particle.Helpers;
 
 namespace Particle
 {
@@ -27,46 +28,28 @@ namespace Particle
 
 		public ParticleCloud()
 		{
-			if (SharedInstance != null)
-				throw new Exception("You can only create one instance of the ParticleCloud");
-
 			OAuthClientId = "particle";
 			OAuthClientSecret = "particle";
-			instance = this;
 		}
 
 		public ParticleCloud(string accessToken, string refreshToken, DateTime expiration)
 		{
-			if (SharedInstance != null)
-				throw new Exception("You can only create one instance of the ParticleCloud");
-
 			AccessToken = new ParticleAccessToken(accessToken, refreshToken, expiration);
-			instance = this;
 			OAuthClientId = "particle";
 			OAuthClientSecret = "particle";
 		}
 
 		#endregion
 
-		#region Public Properties
+		#region Properties
 
-		private static ParticleCloud instance;
-		public static ParticleCloud SharedInstance
-		{
-			get
-			{
-				if (instance == null)
-				{
-					instance = new ParticleCloud();
-				}
-				return instance;
-			}
-		}
+		public static ParticleCloud SharedInstance { get; internal set; } = new ParticleCloud();
 		public string LoggedInUsername { get; internal set; }
 		public bool IsLoggedIn { get; internal set; }
 		public static ParticleAccessToken AccessToken { get; set; }
 		public string OAuthClientId { get; internal set; }
 		public string OAuthClientSecret { get; internal set; }
+		public Dictionary<Guid, EventSource> SubscibedEvents { get; internal set; } = new Dictionary<Guid, EventSource>();
 
 		#endregion
 
@@ -78,12 +61,13 @@ namespace Particle
 			AccessToken = null;
 			OAuthClientId = null;
 			OAuthClientSecret = null;
-			instance = null;
+			SharedInstance = null;
 		}
 
 		#endregion
 
 		#region Public Methods
+
 		/// <summary>
 		/// Creates the OAuth client and sets the OAuth Client Id and Secret if successful.
 		/// </summary>
@@ -201,14 +185,17 @@ namespace Particle
 		}
 
 		//TODO Still need to complete
-		public void SignUpWithCusomter(string email, string password, string orgSlig)
+		public Task SignUpWithCusomterAsync(string email, string password, string orgSlig)
 		{
+			throw new NotImplementedException();
 		}
-		public void RequestPasswordResetForCustomer(string orgSlug, string email)
+		public Task RequestPasswordResetForCustomerAsync(string orgSlug, string email)
 		{
+			throw new NotImplementedException();
 		}
-		public void RequestPasswordResetForUser(string email)
+		public Task RequestPasswordResetForUserAsync(string email)
 		{
+			throw new NotImplementedException();
 		}
 		/// <summary>
 		/// Gets a list of the users registered Particle Devices..
@@ -331,7 +318,7 @@ namespace Particle
 				using (var client = new HttpClient(new NativeMessageHandler()))
 				{
 					var response = await client.PostAsync(
-						"https://api.spark.io/v1/devices?access_token=" + AccessToken.Token,
+						DEVICE_URI_ENDPOINT + "?access_token=" + AccessToken.Token,
 						requestContent);
 
 					var particleResponse = DeserializeObject<ParticleFunctionResponse>(await response.Content.ReadAsStringAsync());
@@ -347,7 +334,123 @@ namespace Particle
 
 			return false;
 		}
+		/// <summary>
+		/// Unsubscribes from event based on its unique identifier.
+		/// </summary>
+		/// <returns>The raw event data.</returns>
+		/// <param name="eventId">Event Subscription Unique Identifier</param>
+		public async Task<Event> UnsubscribeFromEventWithIdAsync(Guid eventId)
+		{
+			var eventSource = SubscibedEvents[eventId];
+
+			if (eventSource == null)
+				return new Event("Event Not Found");
+
+			eventSource.CloseConnection();
+			var eventRaw = eventSource.SourceEvent;
+			eventSource.Dispose();
+
+			SubscibedEvents.Remove(eventId);
+
+			return eventRaw;
+		}
+		/// <summary>
+		/// Subscribes to events with a given prefix.
+		/// </summary>
+		/// <returns>A Guid that uniquely identifies the subscription</returns>
+		/// <param name="eventNamePrefix">Event name prefix.</param>
+		/// <param name="handler">ParticleEventHandler to invoke as events are received</param>
+		public async Task<Guid> SubscribeToAllEventsWithPrefixAsync(string eventNamePrefix, ParticleEventHandler handler)
+		{
+			string endpoint;
+			if (IsNullOrEmpty(eventNamePrefix))
+				endpoint = "https://api.particle.io/v1/events/";
+			else
+				endpoint = "https://api.particle.io/v1/events/" + eventNamePrefix;
+
+			var eventListenerId = await subscribeToEventWithUrlAsync(endpoint, handler, eventNamePrefix);
+
+			return eventListenerId;
+		}
+		/// <summary>
+		/// Subscribes to events with a given prefix.
+		/// </summary>
+		/// <returns>A Guid that uniquely identifies the subscription</returns>
+		/// <param name="eventNamePrefix">Event name prefix.</param>
+		/// <param name="deviceID">Device identifier.</param>
+		/// <param name="handler">ParticleEventHandler to invoke as events are received</param>
+		public async Task<Guid> SubscribeToMyDevicesEventsWithPrefixAsync(string eventNamePrefix, string deviceID, ParticleEventHandler handler)//add event handler
+		{
+			string endpoint;
+			if (!IsNullOrEmpty(eventNamePrefix))
+				endpoint = "https://api.particle.io/v1/devices/events/";
+			else
+				endpoint = "https://api.particle.io/v1/devices/events/" + eventNamePrefix;
+
+			var eventListenerId = await subscribeToEventWithUrlAsync(endpoint, handler, eventNamePrefix);
+
+			return eventListenerId;
+		}
+		/// <summary>
+		/// Publishes the event to the ParticleCloud.
+		/// </summary>
+		/// <returns>Either 'ok' or 'Error'</returns>
+		/// <param name="eventName">Event name.</param>
+		/// <param name="data">Event Data.</param>
+		/// <param name="isPrivate">If you wish this event to be publicly visible.</param>
+		/// <param name="timeToLive">How long the event should persist.</param>
+		public async Task<string> PublishEventWithNameAsync(string eventName, string data, bool isPrivate, int timeToLive)
+		{
+			string privateString = "";
+
+			if (isPrivate)
+				privateString = "true";
+			else
+				privateString = "false";
+
+			var requestContent = new KeyValuePair<string, string>[] {
+				new KeyValuePair<string, string> ("name", eventName),
+				new KeyValuePair<string, string> ("data", data),
+				new KeyValuePair<string, string> ("ttl", timeToLive.ToString()),
+				new KeyValuePair<string, string> ("isPrivate", privateString),
+			};
+
+			try
+			{
+				using (var client = new HttpClient(new NativeMessageHandler()))
+				{
+					var response = await client.PostAsync(
+						"https://api.particle.io/v1/devices/events" + "?access_token=" + AccessToken.Token,
+						new FormUrlEncodedContent(requestContent)
+					);
+					var particleResponse = await response.Content.ReadAsStringAsync();
+
+					if (particleResponse.Contains("\"ok\": true"))
+						return "Ok";
+
+					return "Error";
+				}
+			}
+			catch (Exception e)
+			{
+				WriteLine(e.Message);
+			}
+
+			return "Error";
+		}
 
 		#endregion
+
+		internal async Task<Guid> subscribeToEventWithUrlAsync(string url, ParticleEventHandler handler, string eventNamePrefix)
+		{
+			var guid = Guid.NewGuid();
+			var source = new EventSource(url, AccessToken.Token, eventNamePrefix);
+			source.AddEventListener(guid.ToString(), handler);
+
+			await Task.Factory.StartNew(() => source.StartHandlingEvents().ConfigureAwait(false), TaskCreationOptions.LongRunning);
+
+			SubscibedEvents.Add(guid, source);
+			return guid;
+		}
 	}
 }
