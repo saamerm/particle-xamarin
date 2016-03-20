@@ -1,14 +1,12 @@
 ﻿using System;
 using System.IO;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Net.Http;
-using static System.Diagnostics.Debug;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using static System.String;
 
-using static Newtonsoft.Json.JsonConvert;
 using ModernHttpClient;
-using Particle.Models;
-using System.Threading;
+using static Newtonsoft.Json.JsonConvert;
 
 namespace Particle.Helpers
 {
@@ -16,22 +14,21 @@ namespace Particle.Helpers
 
 	public class EventSource : IDisposable
 	{
-		public EventSource(string url, string accessToken)//, int timeoutInterval = 30, int retryInterval = 1)
+		internal EventSource(string url, string accessToken, string eventNamePrefix, int timeOutInSeconds = 30)
 		{
 			EventUrl = url;
 			Listeners = new Dictionary<string, ParticleEventHandler>();
-			//TimeoutInterval = timeoutInterval;
-			//RetryInterval = retryInterval;
 			AccessToken = accessToken;
+			ClientTimeOut = timeOutInSeconds;
+			SourceEvent.Name = eventNamePrefix;
 		}
 
 		public string EventUrl { get; internal set; }
 		public Dictionary<string, ParticleEventHandler> Listeners { get; internal set; }
-		//public int TimeoutInterval { get; internal set; }
-		//public int RetryInterval { get; internal set; } = 1;
+		public int ClientTimeOut { get; set; }
 		public int LastEventID { get; internal set; }
 		public string AccessToken { get; internal set; }
-		public EventRepository AllEvents { get; internal set; }
+		public Event SourceEvent { get; internal set; } = new Event();
 
 		public void AddEventListener(string eventName, ParticleEventHandler handler)
 		{
@@ -51,66 +48,83 @@ namespace Particle.Helpers
 				OnMessage -= Listeners[eventName];
 				Listeners.Remove(eventName);
 			}
+			else
+				throw new Exception("Event Name is not present in dictionary. Consider using a GUID to ensure a unique number is generated");
 		}
 
-		public event ParticleEventHandler OnMessage;
+		event ParticleEventHandler OnMessage;
 		public event ParticleEventHandler OnError;
 		public event ParticleEventHandler OnOpen;
 
-		void ReceivedMessage(ParticleEvent receivedEvent, string error = null)
+		void ReceivedMessage(ParticleEvent receivedEvent)
 		{
-			if (!String.IsNullOrEmpty(error) && OnError != null)
-				OnError(this, new ParticleEventArgs(error));
-
 			if (OnMessage != null)
 				OnMessage(this, new ParticleEventArgs(receivedEvent));
 		}
 
-		void CloseConnection()
+		void ErrorReceived(string error)
 		{
-			isSubscribed = false;
-			AllEvents.State = EventState.Closed;
+			if (!IsNullOrEmpty(error) && OnError != null)
+				OnError(this, new ParticleEventArgs(error));
 		}
 
-		bool isSubscribed = false;
+		internal void CloseConnection()
+		{
+			isSubscribed = false;
+			SourceEvent.State = EventState.Closed;
+		}
+
+		bool isSubscribed;
 		public async Task StartHandlingEvents()
 		{
-			AllEvents.State = EventState.Connecting;
+			if (SourceEvent.State == EventState.Open)
+				return;
+
+			SourceEvent.State = EventState.Connecting;
 			var url = EventUrl + "?access_token=" + AccessToken;
 			string eventName = "";
 			isSubscribed = true;
 
 			using (var client = new HttpClient(new NativeMessageHandler()))
 			{
-				client.Timeout = TimeSpan.FromMilliseconds(Timeout.Infinite);
+				client.Timeout = TimeSpan.FromSeconds(ClientTimeOut);
 
 				var request = new HttpRequestMessage(HttpMethod.Get, url);
-				using (var response = await client.SendAsync(
-					request,
-					HttpCompletionOption.ResponseHeadersRead))
-				{
-					AllEvents.State = EventState.Open;
-					using (var body = await response.Content.ReadAsStreamAsync())
-					using (var reader = new StreamReader(body))
-					{
-						if (OnOpen != null)
-							OnOpen(this, new ParticleEventArgs());
 
-						while (!reader.EndOfStream && isSubscribed)
+				try
+				{
+					using (var response = await client.SendAsync(
+						request,
+						HttpCompletionOption.ResponseHeadersRead))
+					{
+						SourceEvent.State = EventState.Open;
+
+						using (var body = await response.Content.ReadAsStreamAsync())
+						using (var reader = new StreamReader(body))
 						{
-							var outputString = reader.ReadLine();
-							if (outputString.Contains("event"))
+							if (OnOpen != null)
+								OnOpen(this, new ParticleEventArgs());
+
+							while (!reader.EndOfStream && isSubscribed)
 							{
-								eventName = outputString.Substring(6);
-							}
-							else if (outputString.Contains("data"))
-							{
-								Dictionary<string, string> values = DeserializeObject<Dictionary<string, string>>(outputString.Substring(5));
-								var lastevent = new ParticleEvent(values, eventName);
-								ReceivedMessage(lastevent);
+								var outputString = reader.ReadLine();
+								if (outputString.Contains("event"))
+								{
+									eventName = outputString.Substring(6);
+								}
+								else if (outputString.Contains("data"))
+								{
+									var values = DeserializeObject<Dictionary<string, string>>(outputString.Substring(5));
+									var lastevent = new ParticleEvent(values, eventName);
+									ReceivedMessage(lastevent);
+								}
 							}
 						}
 					}
+				}
+				catch (HttpRequestException e)
+				{
+					ErrorReceived(e.Message);
 				}
 			}
 		}
@@ -119,7 +133,7 @@ namespace Particle.Helpers
 		{
 			EventUrl = null;
 			AccessToken = null;
-			AllEvents = null;
+			SourceEvent = null;
 
 			foreach (var listener in Listeners)
 				OnMessage -= listener.Value;

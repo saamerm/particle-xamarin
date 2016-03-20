@@ -7,24 +7,35 @@ namespace MyDevices.Pages
 {
 	public class TestPage : ContentPage
 	{
+		Guid id1, id2;
+
 		public TestPage()
 		{
-			Button button = new Button { Text = "Test" };
+			Button subscribeButton = new Button { Text = "Subscribe" };
+			Button unsubscribeButton = new Button { Text = "Unsubscribe" };
 			Label results = new Label();
 
 			Content = new StackLayout
 			{
 				VerticalOptions = LayoutOptions.Center,
 				Children = {
-					button,
+					subscribeButton,
+					unsubscribeButton,
 					results
 				}
 			};
 
-			button.Clicked += async (object sender, EventArgs e) =>
+			subscribeButton.Clicked += async (object sender, EventArgs e) =>
 			{
 				//var test = await ParticleCloud.SharedInstance.PublishEventWithName("test", "Data", false, 1000);
-				await ParticleCloud.SharedInstance.SubscribeToAllEventsWithPrefix("test", WriteMessageToLine);
+				id1 = await ParticleCloud.SharedInstance.SubscribeToAllEventsWithPrefixAsync("test", WriteMessageToLine);
+				id2 = await ParticleCloud.SharedInstance.SubscribeToMyDevicesEventsWithPrefixAsync("myevent", "001", WriteMessageToLine);
+			};
+
+			unsubscribeButton.Clicked += async (object sender, EventArgs e) =>
+			{
+				await ParticleCloud.SharedInstance.UnsubscribeFromEventWithIdAsync(id1);
+				await ParticleCloud.SharedInstance.UnsubscribeFromEventWithIdAsync(id2);
 			};
 
 		}
@@ -32,9 +43,8 @@ namespace MyDevices.Pages
 		public void WriteMessageToLine(object sender, ParticleEventArgs e)
 		{
 			System.Diagnostics.Debug.WriteLine(e.EventData.Event);
+			System.Diagnostics.Debug.WriteLine(e.EventData.DeviceId);
 		}
-
-
 
 		protected override async void OnAppearing()
 		{
@@ -43,8 +53,7 @@ namespace MyDevices.Pages
 			await ParticleCloud.SharedInstance.CreateOAuthClientAsync(App.Token, "xamarin");
 			var response = await ParticleCloud.SharedInstance.LoginWithUserAsync("michael.watson@xamarin.com", "Da2188MW");
 
-			//StartPublish();
-
+			//await StartPublish().ConfigureAwait(false);
 		}
 
 		async Task StartPublish()
@@ -53,7 +62,7 @@ namespace MyDevices.Pages
 
 			while (keepRunning)
 			{
-				await ParticleCloud.SharedInstance.PublishEventWithName("test", "Data", false, 1000);
+				await ParticleCloud.SharedInstance.PublishEventWithNameAsync("MyExpensesTest", "beep", false, 60);
 				await Task.Delay(1000);
 			}
 		}

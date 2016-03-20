@@ -10,6 +10,7 @@ using ModernHttpClient;
 using static Newtonsoft.Json.JsonConvert;
 
 using Particle.Models;
+using Particle.Helpers;
 
 namespace Particle
 {
@@ -290,6 +291,33 @@ namespace Particle
 			}
 
 			return false;
+		}
+		/// <summary>
+		/// Subscribes to events with a given prefix.
+		/// </summary>
+		/// <returns>A Guid that uniquely identifies the subscription</returns>
+		/// <param name="eventNamePrefix">Event name prefix.</param>
+		/// <param name="handler">ParticleEventHandler to invoke as events are received</param>
+		public async Task<Guid> SubscribeToEventsWithPrefixAsync(string eventNamePrefix, ParticleEventHandler handler)
+		{
+			string endpoint;
+			if (!IsNullOrEmpty(eventNamePrefix))
+				endpoint = "https://api.particle.io/v1/devices/events/";
+			else
+				endpoint = "https://api.particle.io/v1/devices/events/" + eventNamePrefix;
+
+			var eventListenerId = await ParticleCloud.SharedInstance.subscribeToEventWithUrlAsync(endpoint, handler, eventNamePrefix);
+
+			return eventListenerId;
+		}
+		/// <summary>
+		/// Unsubscribes from event based on its unique identifier.
+		/// </summary>
+		/// <returns>The raw event data.</returns>
+		/// <param name="eventId">Event Subscription Unique Identifier</param>
+		public async Task<Event> UnsubscribeToEventsWithIdAsync(Guid eventId)
+		{
+			return await ParticleCloud.SharedInstance.UnsubscribeFromEventWithIdAsync(eventId);
 		}
 
 		#endregion

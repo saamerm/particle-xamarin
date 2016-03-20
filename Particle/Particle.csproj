@@ -43,7 +43,7 @@
     <Compile Include="ParticleDevice.cs" />
     <Compile Include="ParticleAccessToken.cs" />
     <Compile Include="Helpers\EventSource.cs" />
-    <Compile Include="Helpers\EventRepository.cs" />
+    <Compile Include="Helpers\Event.cs" />
     <Compile Include="ParticleEvent.cs" />
     <Compile Include="Helpers\ParticleEventArgs.cs" />
     <Compile Include="enums\EventState.cs" />

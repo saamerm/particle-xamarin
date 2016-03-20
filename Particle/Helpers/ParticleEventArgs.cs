@@ -1,4 +1,5 @@
 ﻿using System;
+
 namespace Particle.Helpers
 {
 	public class ParticleEventArgs : EventArgs
@@ -15,6 +16,7 @@ namespace Particle.Helpers
 		{
 			EventData = eventData;
 		}
+
 
 		public ParticleEvent EventData { get; set; }
 		public string Error { get; set; }

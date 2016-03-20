@@ -10,7 +10,6 @@ using static Newtonsoft.Json.JsonConvert;
 
 using Particle.Models;
 using Particle.Helpers;
-using System.Threading;
 
 namespace Particle
 {
@@ -43,14 +42,15 @@ namespace Particle
 		#endregion
 
 		#region Properties
-		//public
+
 		public static ParticleCloud SharedInstance { get; internal set; } = new ParticleCloud();
 		public string LoggedInUsername { get; internal set; }
 		public bool IsLoggedIn { get; internal set; }
 		public static ParticleAccessToken AccessToken { get; set; }
 		public string OAuthClientId { get; internal set; }
 		public string OAuthClientSecret { get; internal set; }
-		public Dictionary<Guid, EventSource> EventSourceDictionary { get; internal set; } = new Dictionary<Guid, EventSource>();
+		public Dictionary<Guid, EventSource> SubscibedEvents { get; internal set; } = new Dictionary<Guid, EventSource>();
+
 		#endregion
 
 		#region IDisposable Implementation
@@ -185,14 +185,17 @@ namespace Particle
 		}
 
 		//TODO Still need to complete
-		public void SignUpWithCusomter(string email, string password, string orgSlig)
+		public Task SignUpWithCusomterAsync(string email, string password, string orgSlig)
 		{
+			throw new NotImplementedException();
 		}
-		public void RequestPasswordResetForCustomer(string orgSlug, string email)
+		public Task RequestPasswordResetForCustomerAsync(string orgSlug, string email)
 		{
+			throw new NotImplementedException();
 		}
-		public void RequestPasswordResetForUser(string email)
+		public Task RequestPasswordResetForUserAsync(string email)
 		{
+			throw new NotImplementedException();
 		}
 		/// <summary>
 		/// Gets a list of the users registered Particle Devices..
@@ -331,39 +334,72 @@ namespace Particle
 
 			return false;
 		}
-
-		public async Task UnsubscribeFromEventWithID(int eventId)
+		/// <summary>
+		/// Unsubscribes from event based on its unique identifier.
+		/// </summary>
+		/// <returns>The raw event data.</returns>
+		/// <param name="eventId">Event Subscription Unique Identifier</param>
+		public async Task<Event> UnsubscribeFromEventWithIdAsync(Guid eventId)
 		{
-			//strip everything but the data
-			//EventSourceDictionary.Add(guid, source);
-		}
+			var eventSource = SubscibedEvents[eventId];
 
-		public async Task<Guid> SubscribeToAllEventsWithPrefix(string eventNamePrefix, ParticleEventHandler handler)
+			if (eventSource == null)
+				return new Event("Event Not Found");
+
+			eventSource.CloseConnection();
+			var eventRaw = eventSource.SourceEvent;
+			eventSource.Dispose();
+
+			SubscibedEvents.Remove(eventId);
+
+			return eventRaw;
+		}
+		/// <summary>
+		/// Subscribes to events with a given prefix.
+		/// </summary>
+		/// <returns>A Guid that uniquely identifies the subscription</returns>
+		/// <param name="eventNamePrefix">Event name prefix.</param>
+		/// <param name="handler">ParticleEventHandler to invoke as events are received</param>
+		public async Task<Guid> SubscribeToAllEventsWithPrefixAsync(string eventNamePrefix, ParticleEventHandler handler)
 		{
 			string endpoint;
-			if (String.IsNullOrEmpty(eventNamePrefix))
+			if (IsNullOrEmpty(eventNamePrefix))
 				endpoint = "https://api.particle.io/v1/events/";
 			else
 				endpoint = "https://api.particle.io/v1/events/" + eventNamePrefix;
 
-			//var eventListenerId = Guid.NewGuid();
-			var eventListenerId = await subscribeToEventWithURL(endpoint, handler);
+			var eventListenerId = await subscribeToEventWithUrlAsync(endpoint, handler, eventNamePrefix);
 
 			return eventListenerId;
 		}
+		/// <summary>
+		/// Subscribes to events with a given prefix.
+		/// </summary>
+		/// <returns>A Guid that uniquely identifies the subscription</returns>
+		/// <param name="eventNamePrefix">Event name prefix.</param>
+		/// <param name="deviceID">Device identifier.</param>
+		/// <param name="handler">ParticleEventHandler to invoke as events are received</param>
+		public async Task<Guid> SubscribeToMyDevicesEventsWithPrefixAsync(string eventNamePrefix, string deviceID, ParticleEventHandler handler)//add event handler
+		{
+			string endpoint;
+			if (!IsNullOrEmpty(eventNamePrefix))
+				endpoint = "https://api.particle.io/v1/devices/events/";
+			else
+				endpoint = "https://api.particle.io/v1/devices/events/" + eventNamePrefix;
 
-		//public async Task SubscribeToMyDevicesEventsWithPrefix(string eventNamePrefix, string deviceID, ParticleEventHandler handler)//add event handler
-		//{
-		//	string endpoint;
-		//	if (!String.IsNullOrEmpty(eventNamePrefix))
-		//		endpoint = "https://api.particle.io/v1/devices/events/";
-		//	else
-		//		endpoint = "https://api.particle.io/v1/devices/events/" + eventNamePrefix;
-		//
-		//	await subscribeToEventWithURL(endpoint, eventNamePrefix, handler);
-		//}
+			var eventListenerId = await subscribeToEventWithUrlAsync(endpoint, handler, eventNamePrefix);
 
-		public async Task<string> PublishEventWithName(string eventName, string data, bool isPrivate, int timeToLive)
+			return eventListenerId;
+		}
+		/// <summary>
+		/// Publishes the event to the ParticleCloud.
+		/// </summary>
+		/// <returns>Either 'ok' or 'Error'</returns>
+		/// <param name="eventName">Event name.</param>
+		/// <param name="data">Event Data.</param>
+		/// <param name="isPrivate">If you wish this event to be publicly visible.</param>
+		/// <param name="timeToLive">How long the event should persist.</param>
+		public async Task<string> PublishEventWithNameAsync(string eventName, string data, bool isPrivate, int timeToLive)
 		{
 			string privateString = "";
 
@@ -405,14 +441,15 @@ namespace Particle
 
 		#endregion
 
-		async Task<Guid> subscribeToEventWithURL(string url, ParticleEventHandler handler)
+		internal async Task<Guid> subscribeToEventWithUrlAsync(string url, ParticleEventHandler handler, string eventNamePrefix)
 		{
 			var guid = Guid.NewGuid();
-			var source = new EventSource(url, AccessToken.Token);
+			var source = new EventSource(url, AccessToken.Token, eventNamePrefix);
 			source.AddEventListener(guid.ToString(), handler);
-			await source.StartHandlingEvents();
 
-			EventSourceDictionary.Add(guid, source);
+			await Task.Factory.StartNew(() => source.StartHandlingEvents().ConfigureAwait(false), TaskCreationOptions.LongRunning);
+
+			SubscibedEvents.Add(guid, source);
 			return guid;
 		}
 	}

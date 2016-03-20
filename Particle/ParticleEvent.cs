@@ -5,7 +5,7 @@ namespace Particle
 {
 	public class ParticleEvent
 	{
-		public ParticleEvent(Dictionary<string, string> eventDictionary, string eventName)
+		internal ParticleEvent(Dictionary<string, string> eventDictionary, string eventName)
 		{
 			DeviceId = eventDictionary["coreid"];
 			Data = eventDictionary["data"];

@@ -1,21 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+
 namespace Particle.Helpers
 {
-	public class EventRepository : EventArgs
+	public class Event : EventArgs
 	{
-		public EventRepository(string error)
+		internal Event(string error)
 		{
 			Error = error;
 		}
 
-		public EventRepository()
+		internal Event()
 		{
 			Data = new Dictionary<string, ParticleEvent>();
 			State = EventState.Closed;
 		}
 
-		public EventRepository(string name, Dictionary<string, ParticleEvent> data, EventState state)
+		internal Event(string name, Dictionary<string, ParticleEvent> data, EventState state)
 		{
 			Name = name;
 			Data = data;
