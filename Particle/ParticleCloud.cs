@@ -405,7 +405,7 @@ namespace Particle
 		public async Task<Guid> SubscribeToMyDevicesEventsWithPrefixAsync(string eventNamePrefix, string deviceID, ParticleEventHandler handler)//add event handler
 		{
 			string endpoint;
-			if (!IsNullOrEmpty(eventNamePrefix))
+			if (IsNullOrEmpty(eventNamePrefix))
 				endpoint = "https://api.particle.io/v1/devices/events/";
 			else
 				endpoint = "https://api.particle.io/v1/devices/events/" + eventNamePrefix;

@@ -28,13 +28,13 @@ namespace MyDevices.Pages
 			subscribeButton.Clicked += async (object sender, EventArgs e) =>
 			{
 				//var test = await ParticleCloud.SharedInstance.PublishEventWithName("test", "Data", false, 1000);
-				id1 = await ParticleCloud.SharedInstance.SubscribeToAllEventsWithPrefixAsync("test", WriteMessageToLine);
-				id2 = await ParticleCloud.SharedInstance.SubscribeToMyDevicesEventsWithPrefixAsync("myevent", "001", WriteMessageToLine);
+				//id1 = await ParticleCloud.SharedInstance.SubscribeToAllEventsWithPrefixAsync("test", WriteMessageToLine);
+				id2 = await ParticleCloud.SharedInstance.SubscribeToMyDevicesEventsWithPrefixAsync("button-press", "380028000847343337373738", WriteMessageToLine);
 			};
 
 			unsubscribeButton.Clicked += async (object sender, EventArgs e) =>
 			{
-				await ParticleCloud.SharedInstance.UnsubscribeFromEventWithIdAsync(id1);
+				//await ParticleCloud.SharedInstance.UnsubscribeFromEventWithIdAsync(id1);
 				await ParticleCloud.SharedInstance.UnsubscribeFromEventWithIdAsync(id2);
 			};
 
@@ -43,7 +43,7 @@ namespace MyDevices.Pages
 		public void WriteMessageToLine(object sender, ParticleEventArgs e)
 		{
 			System.Diagnostics.Debug.WriteLine(e.EventData.Event);
-			System.Diagnostics.Debug.WriteLine(e.EventData.DeviceId);
+			System.Diagnostics.Debug.WriteLine(e.EventData.Data);
 		}
 
 		protected override async void OnAppearing()

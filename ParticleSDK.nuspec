@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>ParticleCloud</id>
-    <version>1.0.0</version>
+    <id>ParticleXamarinSDK</id>
+    <version>1.0.5</version>
     <authors>Michael Watson</authors>
     <owners>Michael Watson</owners>
     <tags>xamarin particle C# .net</tags>
@@ -14,6 +14,7 @@
     <dependencies>
       <group targetFramework="portable-win+net45+wp80+win81+wpa81+MonoAndroid10+MonoTouch10+Xamarin.iOS10">
         <dependency id="modernhttpclient" version="2.4.2"/>
+        <dependency id="Newtonsoft.Json" version="8.0.2"/>
       </group>
     </dependencies>
     <references>
@@ -24,6 +25,6 @@
   </metadata>
   <files>
     <!--PCL-->
-    <file src="Particle/bin/Release/Particle.dll" target="lib\portable-win+net45+wp80+win81+wpa81+MonoAndroid10+MonoTouch10+Xamarin.iOS10" />
+    <file src="Particle/bin/Debug/Particle.dll" target="lib\portable-win+net45+wp80+win81+wpa81+MonoAndroid10+MonoTouch10+Xamarin.iOS10" />
   </files>
 </package>
