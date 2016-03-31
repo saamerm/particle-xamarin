@@ -4,12 +4,13 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using static System.String;
 using static System.Diagnostics.Debug;
-
+using System.Threading;
 using ModernHttpClient;
 using static Newtonsoft.Json.JsonConvert;
 
 using Particle.Models;
 using Particle.Helpers;
+using System.Threading;
 
 namespace Particle
 {
@@ -464,7 +465,7 @@ namespace Particle
 
 		#endregion
 
-		internal async Task<Guid> subscribeToEventWithUrlAsync(string url, ParticleEventHandler handler, string eventNamePrefix)
+		async Task<Guid> subscribeToEventWithUrlAsync(string url, ParticleEventHandler handler, string eventNamePrefix)
 		{
 			var guid = Guid.NewGuid();
 			var source = new EventSource(url, AccessToken.Token, eventNamePrefix);

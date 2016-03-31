@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using static System.String;
 
-using ModernHttpClient;
 using static Newtonsoft.Json.JsonConvert;
 
 namespace Particle.Helpers
@@ -84,15 +83,14 @@ namespace Particle.Helpers
 			var url = EventUrl + "?access_token=" + AccessToken;
 			string eventName = "";
 			isSubscribed = true;
-
-			using (var client = new HttpClient(new NativeMessageHandler()))
+			try
 			{
-				client.Timeout = TimeSpan.FromSeconds(ClientTimeOut);
-
-				var request = new HttpRequestMessage(HttpMethod.Get, url);
-
-				try
+				using (var client = new HttpClient())
 				{
+					client.Timeout = TimeSpan.FromSeconds(ClientTimeOut);
+
+					var request = new HttpRequestMessage(HttpMethod.Get, url);
+
 					using (var response = await client.SendAsync(
 						request,
 						HttpCompletionOption.ResponseHeadersRead))
@@ -122,12 +120,14 @@ namespace Particle.Helpers
 						}
 					}
 				}
-				catch (HttpRequestException e)
-				{
-					ErrorReceived(e.Message);
-				}
+			}
+			catch (HttpRequestException e)
+			{
+				ErrorReceived(e.Message);
 			}
 		}
+
+
 
 		public void Dispose()
 		{

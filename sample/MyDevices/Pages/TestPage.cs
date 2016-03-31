@@ -8,12 +8,13 @@ namespace MyDevices.Pages
 	public class TestPage : ContentPage
 	{
 		Guid id1, id2;
+		Label results;
 
 		public TestPage()
 		{
 			Button subscribeButton = new Button { Text = "Subscribe" };
 			Button unsubscribeButton = new Button { Text = "Unsubscribe" };
-			Label results = new Label();
+			results = new Label();
 
 			Content = new StackLayout
 			{
@@ -42,6 +43,7 @@ namespace MyDevices.Pages
 
 		public void WriteMessageToLine(object sender, ParticleEventArgs e)
 		{
+			Device.BeginInvokeOnMainThread(() => { results.Text = e.EventData.Data; });
 			System.Diagnostics.Debug.WriteLine(e.EventData.Event);
 			System.Diagnostics.Debug.WriteLine(e.EventData.Data);
 		}

@@ -38,9 +38,9 @@ namespace MyDevices
 				BarTextColor = Color.White,
 			};
 			Navigation = navPage.Navigation;
-			//MainPage = navPage;
+			MainPage = navPage;
 
-			MainPage = new TestPage();
+			//MainPage = new TestPage();
 
 			IsInitialized = true;
 		}

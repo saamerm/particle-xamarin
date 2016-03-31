@@ -306,7 +306,7 @@ namespace Particle
 			else
 				endpoint = "https://api.particle.io/v1/devices/events/" + eventNamePrefix;
 
-			var eventListenerId = await ParticleCloud.SharedInstance.subscribeToEventWithUrlAsync(endpoint, handler, eventNamePrefix);
+			var eventListenerId = await subscribeToEventWithUrlAsync(endpoint, handler, eventNamePrefix);
 
 			return eventListenerId;
 		}
@@ -321,5 +321,19 @@ namespace Particle
 		}
 
 		#endregion
+
+		async Task<Guid> subscribeToEventWithUrlAsync(string url, ParticleEventHandler handler, string eventNamePrefix)
+		{
+			var guid = Guid.NewGuid();
+			var source = new EventSource(url, ParticleCloud.AccessToken.Token, eventNamePrefix);
+			source.AddEventListener(guid.ToString(), handler);
+
+			await Task.Factory.StartNew(() => source.StartHandlingEvents().ConfigureAwait(false), TaskCreationOptions.LongRunning);
+
+			//source.StartHandlingEvents();
+
+			ParticleCloud.SharedInstance.SubscibedEvents.Add(guid, source);
+			return guid;
+		}
 	}
 }
