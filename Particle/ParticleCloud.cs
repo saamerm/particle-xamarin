@@ -390,7 +390,7 @@ namespace Particle
 			if (IsNullOrEmpty(eventNamePrefix))
 				endpoint = "https://api.particle.io/v1/events/";
 			else
-				endpoint = "https://api.particle.io/v1/events/" + eventNamePrefix;
+				endpoint = $"https://api.particle.io/v1/events/{eventNamePrefix}";
 
 			var eventListenerId = await subscribeToEventWithUrlAsync(endpoint, handler, eventNamePrefix);
 
@@ -407,9 +407,9 @@ namespace Particle
 		{
 			string endpoint;
 			if (IsNullOrEmpty(eventNamePrefix))
-				endpoint = "https://api.particle.io/v1/devices/events/";
+				endpoint = $"https://api.particle.io/v1/devices/{deviceID}/events/";
 			else
-				endpoint = "https://api.particle.io/v1/devices/events/" + eventNamePrefix;
+				endpoint = $"https://api.particle.io/v1/devices/events/{eventNamePrefix}";
 
 			var eventListenerId = await subscribeToEventWithUrlAsync(endpoint, handler, eventNamePrefix);
 

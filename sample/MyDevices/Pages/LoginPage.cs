@@ -25,7 +25,8 @@ namespace MyDevices.Pages
 			{
 				if (Device.OS == TargetPlatform.iOS)
 					Navigation.InsertPageBefore(new MyDevicesPage(), this);
-
+				SetUsernameEntry("michael.watson@xamarin.com");
+				SetPasswordEntry("Da2188MW");
 				isInitialized = true;
 			}
 		}

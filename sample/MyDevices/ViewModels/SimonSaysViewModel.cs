@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 
 using Particle;
+using Particle.Helpers;
 
 namespace MyDevices.ViewModels
 {
@@ -97,13 +98,15 @@ namespace MyDevices.ViewModels
 		public async Task StartGame()
 		{
 			playerEntry = "";
+			await ScheduleGameCheckAsync();
 			await Device.CallFunctionAsync("startSimon");
 			gameRunning = true;
+
 			await Task.Delay(500);
 
 			var simonParticle = await Device.GetVariableAsync("simon");
 			simonMoves = simonParticle.Result.ToString();
-			ScheduleGameCheckAsync();
+			System.Diagnostics.Debug.WriteLine(simonMoves);
 		}
 
 		public void Winner()
@@ -123,7 +126,7 @@ namespace MyDevices.ViewModels
 
 		public async Task PlayerPressButtonAsync(string color)
 		{
-			playerEntry+=color;
+			playerEntry += color;
 			OnPropertyChanged("DetailText");
 
 			switch (color)
@@ -148,37 +151,36 @@ namespace MyDevices.ViewModels
 			{
 				case "r":
 					RedOpacity = 0.5;
-				break;
+					break;
 				case "g":
 					GreenOpacity = 0.5;
-				break;
+					break;
 				case "b":
 					BlueOpacity = 0.5;
-				break;
+					break;
 				case "y":
 					YellowOpacity = 0.5;
-				break;
+					break;
 			}
 		}
 
 		public async Task<string> PlayMoveAsync()
 		{
 			var response = await Device.CallFunctionAsync("buttonPress", playerEntry);
-			if (response == "0")
-			{
-				EndGame();
-			}
-			else if (response == "1")
+			//if (response == "0")
+			//{
+			//	EndGame();
+			//}
+			if (response == "1")
 			{
 				playerEntry = "Correct!";
 				OnPropertyChanged("DetailText");
 				playerEntry = "";
-				//await PlaySimonMoves();
 			}
-			else if (response == "2")
-			{
-				EndGame();
-			}
+			//else if (response == "2")
+			//{
+			//	EndGame();
+			//}
 
 			return response;
 		}
@@ -208,27 +210,35 @@ namespace MyDevices.ViewModels
 			playerMoveCount++;
 		}
 
+		async void GameHandler(object sender, ParticleEventArgs e)
+		{
+			System.Diagnostics.Debug.WriteLine($"{e.EventData.Event}: {e.EventData.Data}\n{e.EventData.DeviceId}");
+			//await Device.UnsubscribeToEventsWithIdAsync(gameCheckGuid);
+		}
+
+		Guid gameCheckGuid;
 		public async Task ScheduleGameCheckAsync()
 		{
-			var keepChecking = true;
-			while (keepChecking)
-			{
-				deviceGameRunning = await Device.CallFunctionAsync("checkIfLoss");
+			gameCheckGuid = await Device.SubscribeToEventsWithPrefixAsync("endgame", GameHandler);
+			//var keepChecking = true;
+			//while (keepChecking)
+			//{
+			//	deviceGameRunning = await Device.CallFunctionAsync("checkIfLoss");
 
-				if (deviceGameRunning == "0")
-				{
-					EndGame();
-					keepChecking = false;
-				}
-				else if (deviceGameRunning == "2")
-				{
-					Winner();
-					keepChecking = false;
-				}
+			//	if (deviceGameRunning == "0")
+			//	{
+			//		EndGame();
+			//		keepChecking = false;
+			//	}
+			//	else if (deviceGameRunning == "2")
+			//	{
+			//		Winner();
+			//		keepChecking = false;
+			//	}
 
-				if (keepChecking)
-					await Task.Delay(TimeSpan.FromMilliseconds(100));
-			}
+			//	if (keepChecking)
+			//		await Task.Delay(TimeSpan.FromMilliseconds(100));
+			//}
 		}
 	}
 }
