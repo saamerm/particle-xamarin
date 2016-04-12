@@ -4,12 +4,13 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using static System.String;
 using static System.Diagnostics.Debug;
-
+using System.Threading;
 using ModernHttpClient;
 using static Newtonsoft.Json.JsonConvert;
 
 using Particle.Models;
 using Particle.Helpers;
+using System.Threading;
 
 namespace Particle
 {
@@ -389,7 +390,7 @@ namespace Particle
 			if (IsNullOrEmpty(eventNamePrefix))
 				endpoint = "https://api.particle.io/v1/events/";
 			else
-				endpoint = "https://api.particle.io/v1/events/" + eventNamePrefix;
+				endpoint = $"https://api.particle.io/v1/events/{eventNamePrefix}";
 
 			var eventListenerId = await subscribeToEventWithUrlAsync(endpoint, handler, eventNamePrefix);
 
@@ -405,10 +406,10 @@ namespace Particle
 		public async Task<Guid> SubscribeToMyDevicesEventsWithPrefixAsync(string eventNamePrefix, string deviceID, ParticleEventHandler handler)//add event handler
 		{
 			string endpoint;
-			if (!IsNullOrEmpty(eventNamePrefix))
-				endpoint = "https://api.particle.io/v1/devices/events/";
+			if (IsNullOrEmpty(eventNamePrefix))
+				endpoint = $"https://api.particle.io/v1/devices/{deviceID}/events/";
 			else
-				endpoint = "https://api.particle.io/v1/devices/events/" + eventNamePrefix;
+				endpoint = $"https://api.particle.io/v1/devices/events/{eventNamePrefix}";
 
 			var eventListenerId = await subscribeToEventWithUrlAsync(endpoint, handler, eventNamePrefix);
 
@@ -464,7 +465,7 @@ namespace Particle
 
 		#endregion
 
-		internal async Task<Guid> subscribeToEventWithUrlAsync(string url, ParticleEventHandler handler, string eventNamePrefix)
+		async Task<Guid> subscribeToEventWithUrlAsync(string url, ParticleEventHandler handler, string eventNamePrefix)
 		{
 			var guid = Guid.NewGuid();
 			var source = new EventSource(url, AccessToken.Token, eventNamePrefix);
