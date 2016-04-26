@@ -62,7 +62,7 @@ namespace Particle
 		public string Category { get; internal set; }
 		public string Id { get; internal set; }
 		public string Name { get; internal set; }
-		public bool Connected { get; internal set; }
+		public bool Connected { get; set; }
 		public List<string> Functions { get; internal set; }
 		public Dictionary<string, string> Variables { get; internal set; }
 		public string LastApp { get; internal set; }
@@ -88,6 +88,7 @@ namespace Particle
 			{
 				using (var client = new HttpClient(new NativeMessageHandler()))
 				{
+					client.Timeout = TimeSpan.FromSeconds(3);
 					var response = await client.GetAsync(
 						DEVICE_URI_ENDPOINT + Id + "/" + variableName + "?access_token=" + ParticleCloud.AccessToken.Token);
 					var particleArgs = DeserializeObject<ParticleVariableResponse>(await response.Content.ReadAsStringAsync());

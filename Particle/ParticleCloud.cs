@@ -48,8 +48,8 @@ namespace Particle
 		public string LoggedInUsername { get; internal set; }
 		public bool IsLoggedIn { get; internal set; }
 		public static ParticleAccessToken AccessToken { get; set; }
-		public string OAuthClientId { get; internal set; }
-		public string OAuthClientSecret { get; internal set; }
+		public string OAuthClientId { get; internal set; } = "particle";
+		public string OAuthClientSecret { get; internal set; } = "particle";
 		public Dictionary<Guid, EventSource> SubscibedEvents { get; internal set; } = new Dictionary<Guid, EventSource>();
 
 		#endregion
@@ -75,13 +75,16 @@ namespace Particle
 		/// <returns>A boolean indicating whether the OAuth client was created successfully or not.</returns>
 		/// <param name="accessToken">Access token.</param>
 		/// <param name="appName">Authorized app name.</param>
-		public async Task<bool> CreateOAuthClientAsync(string accessToken, string appName)
+		public async Task<bool> CreateOAuthClientAsync(string appName, string accessToken = null)
 		{
 			var requestContent = new FormUrlEncodedContent(new[] {
 				new KeyValuePair<string, string> ("name", appName),
 				new KeyValuePair<string, string> ("type", "installed"),
-				new KeyValuePair<string, string> ("access_token", accessToken),
+
 			});
+
+			if (accessToken != null)
+				requestContent.Headers.Add("access_token", accessToken);
 
 			try
 			{
@@ -130,6 +133,7 @@ namespace Particle
 					if (particleResponse.AccessToken != null || !IsNullOrEmpty(particleResponse.AccessToken))
 					{
 						AccessToken = new ParticleAccessToken(particleResponse);
+						LoggedInUsername = username;
 						IsLoggedIn = true;
 						return true;
 					}

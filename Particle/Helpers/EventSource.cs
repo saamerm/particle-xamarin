@@ -127,8 +127,6 @@ namespace Particle.Helpers
 			}
 		}
 
-
-
 		public void Dispose()
 		{
 			EventUrl = null;
